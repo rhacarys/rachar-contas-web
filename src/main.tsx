@@ -15,12 +15,25 @@ const queryClient = new QueryClient({
   },
 });
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <MantineProvider>
-        <App />
-      </MantineProvider>
-    </QueryClientProvider>
-  </React.StrictMode>,
-);
+async function enableMocking() {
+  if (import.meta.env.VITE_ENABLE_MOCKS !== "true") {
+    return;
+  }
+
+  const { worker } = await import("./mocks/browser");
+  return worker.start({
+    onUnhandledRequest: "bypass",
+  });
+}
+
+enableMocking().then(() => {
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <App />
+        </MantineProvider>
+      </QueryClientProvider>
+    </React.StrictMode>,
+  );
+});

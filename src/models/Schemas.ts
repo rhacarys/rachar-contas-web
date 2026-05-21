@@ -13,7 +13,7 @@ export const RegisterRequestSchema = z.object({
 });
 
 export const UserResponseSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   name: z.string().optional(),
   login: z.string().optional(),
 });
@@ -32,11 +32,12 @@ export const PartyRequestSchema = z.object({
 });
 
 export const PartyResponseSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   code: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
   currencyCode: z.string().optional(),
+  userBalance: z.number().optional(),
 });
 
 export const JoinPartyRequestSchema = z.object({
@@ -45,19 +46,19 @@ export const JoinPartyRequestSchema = z.object({
 });
 
 export const MemberBalanceSchema = z.object({
-  membershipId: z.string().uuid().optional(),
+  membershipId: z.uuid().optional(),
   alias: z.string().optional(),
   balance: z.number().optional(),
 });
 
 export const PartyBalanceResponseSchema = z.object({
-  partyId: z.string().uuid().optional(),
+  partyId: z.uuid().optional(),
   balances: z.array(MemberBalanceSchema).optional(),
 });
 
 // --- Expenses ---
 export const SplitRequestSchema = z.object({
-  debtorId: z.string().uuid(),
+  debtorId: z.uuid(),
   amount: z.number(),
 });
 
@@ -65,24 +66,31 @@ export const ExpenseRequestSchema = z.object({
   description: z.string(),
   amount: z.number(),
   date: z.string(), // format: date-time
-  payerId: z.string().uuid(),
+  payerId: z.uuid(),
   type: z.enum(["PURCHASE", "TRANSFER"]).optional(),
   splits: z.array(SplitRequestSchema),
 });
 
 export const SplitResponseSchema = z.object({
-  debtorId: z.string().uuid().optional(),
+  debtorId: z.uuid().optional(),
   amount: z.number().optional(),
 });
 
 export const ExpenseResponseSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   description: z.string().optional(),
   amount: z.number().optional(),
   date: z.string().optional(),
-  payerId: z.string().uuid().optional(),
+  payerId: z.uuid().optional(),
   type: z.enum(["PURCHASE", "TRANSFER"]).optional(),
   splits: z.array(SplitResponseSchema).optional(),
+});
+
+// --- Currencies ---
+export const CurrencyResponseSchema = z.object({
+  id: z.uuid(),
+  code: z.string(),
+  name: z.string(),
 });
 
 // --- Export Types ---
@@ -96,3 +104,4 @@ export type JoinPartyRequest = z.infer<typeof JoinPartyRequestSchema>;
 export type PartyBalanceResponse = z.infer<typeof PartyBalanceResponseSchema>;
 export type ExpenseRequest = z.infer<typeof ExpenseRequestSchema>;
 export type ExpenseResponse = z.infer<typeof ExpenseResponseSchema>;
+export type CurrencyResponse = z.infer<typeof CurrencyResponseSchema>;

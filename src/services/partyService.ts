@@ -1,5 +1,6 @@
 import { api } from "../api/client";
 import {
+  type CurrencyResponse,
   type ExpenseRequest,
   type ExpenseResponse,
   type JoinPartyRequest,
@@ -48,5 +49,11 @@ export const partyService = {
   },
   deleteExpense: async (partyId: string, expenseId: string): Promise<void> => {
     await api.delete(`/parties/${partyId}/expenses/${expenseId}`);
+  },
+
+  // Currencies
+  getAvailableCurrencies: async (): Promise<CurrencyResponse[]> => {
+    const response = await api.get<CurrencyResponse[]>("/currencies");
+    return response.data;
   },
 };
