@@ -3,7 +3,7 @@ import type { PartyBalanceResponse } from "@/models/Schemas";
 import { ActionIcon, Card, Group, Text, TextInput, Tooltip } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { IconCheck, IconEdit, IconTrash, IconX } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type MemberBalanceItem = NonNullable<PartyBalanceResponse["balances"]>[number];
 
@@ -34,9 +34,14 @@ export function MemberBalanceRow({
   const isDebtor = (member.balance ?? 0) < 0;
   const isSettled = (member.balance ?? 0) === 0;
 
-  useEffect(() => {
-    if (!isManageMode) setIsEditing(false);
-  }, [isManageMode]);
+  const [prevManageMode, setPrevManageMode] = useState(isManageMode);
+
+  if (isManageMode !== prevManageMode) {
+    setPrevManageMode(isManageMode);
+    if (!isManageMode) {
+      setIsEditing(false);
+    }
+  }
 
   const handleSaveAlias = async () => {
     if (!alias.trim() || alias.trim().length < 2) return;

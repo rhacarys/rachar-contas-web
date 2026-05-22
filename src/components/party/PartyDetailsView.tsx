@@ -63,7 +63,7 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        console.log("Compartilhamento cancelado");
+        console.log("Compartilhamento cancelado:", err);
       }
     } else {
       await navigator.clipboard.writeText(inviteLink);
