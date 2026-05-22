@@ -25,8 +25,6 @@ export function Home() {
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group>
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-
             {activePartyId && (
               <ActionIcon variant="subtle" size="lg" onClick={() => setActivePartyId(null)}>
                 <IconHome size={20} />
