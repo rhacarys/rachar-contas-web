@@ -2,9 +2,22 @@ import { BottomDrawer } from "@/components/ui/BottomDrawer";
 import { useCreateExpense, useDeleteExpense } from "@/hooks/useExpenses";
 import { usePartyBalances } from "@/hooks/useParties";
 import { type ExpenseRequest, type ExpenseResponse } from "@/models/Schemas";
-import { Button, Group, MultiSelect, NumberInput, SegmentedControl, Select, Stack, TextInput } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Group,
+  MultiSelect,
+  NumberInput,
+  SegmentedControl,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+} from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { useForm } from "@mantine/form";
+import { modals } from "@mantine/modals";
+import { IconTrash } from "@tabler/icons-react";
 import { useEffect } from "react";
 
 interface ExpenseDrawerProps {
@@ -70,6 +83,25 @@ export function ExpenseDrawer({ partyId, opened, onClose, expenseToEdit }: Expen
     label: m.alias || "Desconhecido",
   }));
 
+  const handleDeleteAction = () => {
+    if (!expenseToEdit?.id) return;
+
+    modals.openConfirmModal({
+      title: "Apagar registro",
+      children: <Text size="sm">Tem certeza que deseja excluir este registro? O saldo de todos será recalculado.</Text>,
+      labels: { confirm: "Apagar", cancel: "Cancelar" },
+      confirmProps: { color: "red" },
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync({ partyId, expenseId: expenseToEdit.id! });
+          onClose();
+        } catch (error) {
+          console.error("Erro ao remover despesa", error);
+        }
+      },
+    });
+  };
+
   const handleSubmit = async (values: ExpenseFormValues) => {
     if (!values.amount || values.amount <= 0) return form.setFieldError("amount", "Valor inválido");
     if (values.selectedDebtors.length === 0) return form.setFieldError("selectedDebtors", "Selecione um participante");
@@ -105,9 +137,10 @@ export function ExpenseDrawer({ partyId, opened, onClose, expenseToEdit }: Expen
 
   const isTransfer = form.values.type === "TRANSFER";
   const isPending = createMutation.isPending || deleteMutation.isPending;
+  const isEditing = !!expenseToEdit;
 
   return (
-    <BottomDrawer opened={opened} onClose={onClose} title={expenseToEdit ? "Editar Registro" : "Novo Registro"}>
+    <BottomDrawer opened={opened} onClose={onClose} title={isEditing ? "Editar Registro" : "Novo Registro"}>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md" pb="xl">
           <SegmentedControl
@@ -116,6 +149,7 @@ export function ExpenseDrawer({ partyId, opened, onClose, expenseToEdit }: Expen
               { label: "Pagamento", value: "TRANSFER" },
             ]}
             {...form.getInputProps("type")}
+            disabled={isEditing}
             onChange={(val) => {
               form.setFieldValue("type", val as "PURCHASE" | "TRANSFER");
               if (val === "TRANSFER") form.setFieldValue("selectedDebtors", []);
@@ -166,13 +200,28 @@ export function ExpenseDrawer({ partyId, opened, onClose, expenseToEdit }: Expen
             />
           )}
 
-          <Group justify="end" mt="lg">
-            <Button variant="subtle" color="gray" onClick={onClose} disabled={isPending}>
-              Cancelar
-            </Button>
-            <Button type="submit" loading={isPending}>
-              Salvar
-            </Button>
+          <Group justify="space-between" mt="lg" wrap="nowrap">
+            {isEditing ? (
+              <ActionIcon
+                variant="filled"
+                color="red"
+                size="lg"
+                onClick={handleDeleteAction}
+                loading={deleteMutation.isPending}
+              >
+                <IconTrash size={18} />
+              </ActionIcon>
+            ) : (
+              <div />
+            )}
+            <Group gap="sm" justify="end">
+              <Button variant="subtle" color="gray" onClick={onClose} disabled={isPending}>
+                Cancelar
+              </Button>
+              <Button type="submit" loading={isPending}>
+                Salvar
+              </Button>
+            </Group>
           </Group>
         </Stack>
       </form>

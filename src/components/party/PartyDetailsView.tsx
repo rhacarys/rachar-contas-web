@@ -33,14 +33,11 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
       <Stack gap={4} mb="xl">
         <Title order={2}>{currentParty?.name || "Grupo"}</Title>
         <Text size="sm" c="dimmed">
-          Moeda padrão: {currentParty?.currencyCode}
+          {currentParty?.description}
         </Text>
       </Stack>
 
       {/* Balances */}
-      <Title order={4} mb="md">
-        Saldos dos Membros
-      </Title>
       <Stack gap="sm" mb="xl">
         {balanceData?.balances?.map((member) => {
           const isDebtor = (member.balance ?? 0) < 0;
@@ -49,9 +46,7 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
               <Group justify="space-between">
                 <Text fw={500}>{member.alias}</Text>
                 <Text fw={700} c={isDebtor ? "red" : "green"}>
-                  {isDebtor
-                    ? `Deve: ${currentParty?.currencyCode} ${Math.abs(member.balance ?? 0).toFixed(2)}`
-                    : `Recebe: ${currentParty?.currencyCode} ${(member.balance ?? 0).toFixed(2)}`}
+                  {`${currentParty?.currencyCode} ${(member.balance ?? 0).toFixed(2)}`}
                 </Text>
               </Group>
             </Card>
@@ -63,7 +58,7 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
 
       {/* Expenses */}
       <Group justify="space-between" mb="md">
-        <Title order={4}>Histórico de Despesas</Title>
+        <Title order={4}>Histórico</Title>
         <Button size="xs" onClick={handleOpenNew}>
           + Novo Registro
         </Button>
