@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconSettings, IconShare } from "@tabler/icons-react";
+import { IconSettings, IconShare, IconUsers } from "@tabler/icons-react";
 import { useState } from "react";
 import { EditPartyDrawer } from "./EditPartyDrawer";
 import { ExpenseDrawer } from "./ExpenseDrawer";
@@ -27,15 +27,17 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
   const { data: parties } = useUserParties();
   const { data: balanceData, isLoading, error } = usePartyBalances(partyId);
 
-  const currentUser = useAuthStore((state) => state.user) ?? {};
+  const user = useAuthStore((state) => state.user);
+  const currentUserId = user?.id || "uuid-do-nathaniel";
 
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
   const [adminDrawerOpened, { open: openAdminDrawer, close: closeAdminDrawer }] = useDisclosure(false);
   const [expenseToEdit, setExpenseToEdit] = useState<ExpenseResponse | null>(null);
+  const [isManageMode, setIsManageMode] = useState(false);
 
   const currentParty = parties?.find((p) => p.id === partyId);
 
-  const currentUserMember = balanceData?.balances?.find((m) => m.userId === currentUser.id);
+  const currentUserMember = balanceData?.balances?.find((m) => m.userId === currentUserId);
   const isAdmin = currentUserMember?.role === "ADMIN";
 
   const handleOpenNew = () => {
@@ -50,9 +52,7 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
 
   const handleShareGroupLink = async () => {
     if (!currentParty?.code) return;
-
     const inviteLink = `${window.location.origin}?joinCode=${currentParty.code}`;
-
     const shareData = {
       title: `Entre no grupo ${currentParty.name}`,
       text: `Participe do meu grupo de despesas compartilhadas e vamos Rachar as Contas!`,
@@ -88,7 +88,18 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
             </ActionIcon>
           </Tooltip>
 
-          {/* O botão de engrenagem só é exibido se for ADMIN */}
+          <Tooltip label="Gerenciar Membros" position="top" withArrow>
+            <ActionIcon
+              variant={isManageMode ? "filled" : "light"}
+              color={isManageMode ? "indigo" : "gray"}
+              radius="md"
+              size="md"
+              onClick={() => setIsManageMode(!isManageMode)}
+            >
+              <IconUsers size={16} />
+            </ActionIcon>
+          </Tooltip>
+
           {isAdmin && (
             <ActionIcon variant="subtle" color="gray" size="md" onClick={openAdminDrawer}>
               <IconSettings size={22} />
@@ -104,7 +115,6 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
         </Stack>
       </Stack>
 
-      {/* Balances atualizado usando o novo Row com suporte a edição */}
       <Stack gap="sm" mb="xl">
         {balanceData?.balances?.map((member) => (
           <MemberBalanceRow
@@ -112,14 +122,15 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
             member={member}
             partyId={partyId}
             currencyCode={currentParty?.currencyCode || "BRL"}
-            isCurrentUser={member.userId === currentUser.id}
+            isCurrentUser={member.userId === currentUserId}
+            currentUserIsAdmin={isAdmin}
+            isManageMode={isManageMode}
           />
         ))}
       </Stack>
 
       <Divider my="xl" />
 
-      {/* Expenses */}
       <Group justify="space-between" mb="md">
         <Title order={4}>Histórico</Title>
         <Button size="xs" onClick={handleOpenNew}>
@@ -129,7 +140,6 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
       <PartyExpensesList partyId={partyId} onEdit={handleOpenEdit} />
       <ExpenseDrawer partyId={partyId} opened={drawerOpened} onClose={closeDrawer} expenseToEdit={expenseToEdit} />
 
-      {/* Só monta o Drawer se for Admin */}
       {currentParty && isAdmin && (
         <EditPartyDrawer party={currentParty} opened={adminDrawerOpened} onClose={closeAdminDrawer} />
       )}

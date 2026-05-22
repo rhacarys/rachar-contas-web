@@ -44,3 +44,29 @@ export function useUpdateMyAlias() {
     },
   });
 }
+
+export function useLeaveParty() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (partyId: string) => {
+      await api.delete(`/parties/${partyId}/members/me`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PARTIES_KEYS.all });
+    },
+  });
+}
+
+export function useKickMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ partyId, membershipId }: { partyId: string; membershipId: string }) => {
+      await api.delete(`/parties/${partyId}/members/${membershipId}`);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: PARTIES_KEYS.balances(variables.partyId) });
+    },
+  });
+}
