@@ -41,6 +41,11 @@ export const handlers = [
     return new HttpResponse(null, { status: 201 });
   }),
 
+  // GET: Listar Moedas Disponíveis
+  http.get(`${BASE_URL}/currencies`, () => {
+    return HttpResponse.json(mockCurrencies);
+  }),
+
   // --- Parties Mocks ---
 
   // GET: Listar Grupos do Usuário

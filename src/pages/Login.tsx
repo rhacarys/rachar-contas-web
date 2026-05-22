@@ -25,6 +25,7 @@ export function Login() {
       setToken(token);
       navigate("/");
     } catch (error) {
+      console.error("Login failed:", error);
       form.setErrors({ login: "Credenciais inválidas" });
     } finally {
       setLoading(false);

@@ -22,6 +22,7 @@ export function Register() {
       await authService.register(values);
       navigate("/login");
     } catch (error) {
+      console.error("Registration failed:", error);
       form.setErrors({ login: "Erro ao registrar, tente outro login" });
     } finally {
       setLoading(false);
