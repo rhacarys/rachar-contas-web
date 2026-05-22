@@ -1,15 +1,12 @@
-import { PartyDetailsView } from "@/components/party/PartyDetailsView";
-import { PartyListView } from "@/components/party/PartyListView";
+import { HomeView } from "@/components/home/HomeView";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePartyStore } from "@/store/usePartyStore";
-import { ActionIcon, AppShell, Burger, Group, Menu, Title } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { ActionIcon, AppShell, Group, Menu, Title } from "@mantine/core";
 import { IconHome, IconLogout, IconUserCircle } from "@tabler/icons-react";
 
 export function Home() {
   const logout = useAuthStore((state) => state.logout);
   const { activePartyId, setActivePartyId } = usePartyStore();
-  const [opened, { toggle }] = useDisclosure();
 
   const handleLogout = () => {
     setActivePartyId(null);
@@ -17,11 +14,7 @@ export function Home() {
   };
 
   return (
-    <AppShell
-      header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: "sm", collapsed: { desktop: true, mobile: !opened } }}
-      padding="md"
-    >
+    <AppShell header={{ height: 60 }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group>
@@ -52,11 +45,7 @@ export function Home() {
       </AppShell.Header>
 
       <AppShell.Main bg="gray.0" style={{ minHeight: "100vh" }}>
-        {activePartyId ? (
-          <PartyDetailsView partyId={activePartyId} />
-        ) : (
-          <PartyListView onSelectParty={(id) => setActivePartyId(id)} />
-        )}
+        <HomeView />
       </AppShell.Main>
     </AppShell>
   );

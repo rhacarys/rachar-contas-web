@@ -1,5 +1,7 @@
+import { api } from "@/api/client";
+import { type UpdateAliasRequest } from "@/models/Schemas";
 import { partyService } from "@/services/partyService";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const PARTIES_KEYS = {
   all: ["parties"] as const,
@@ -27,5 +29,18 @@ export function useAvailableCurrencies() {
     queryKey: PARTIES_KEYS.currencies,
     queryFn: partyService.getAvailableCurrencies,
     staleTime: Infinity,
+  });
+}
+
+export function useUpdateMyAlias() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ partyId, data }: { partyId: string; data: UpdateAliasRequest }) => {
+      await api.put(`/parties/${partyId}/members/me/alias`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: PARTIES_KEYS.balances(variables.partyId) });
+    },
   });
 }

@@ -1,11 +1,6 @@
 import { z } from "zod";
 
 // --- Auth & Users ---
-export const LoginRequestSchema = z.object({
-  login: z.string(),
-  password: z.string(),
-});
-
 export const RegisterRequestSchema = z.object({
   login: z.string().min(3).max(50),
   name: z.string(),
@@ -22,6 +17,16 @@ export const UserUpdateRequestSchema = z.object({
   name: z.string().min(3).max(50),
   currentPassword: z.string().optional(),
   newPassword: z.string().min(6).optional(),
+});
+
+export const LoginRequestSchema = z.object({
+  login: z.string(),
+  password: z.string(),
+});
+
+export const LoginResponseSchema = z.object({
+  token: z.string(),
+  user: UserResponseSchema,
 });
 
 // --- Parties ---
@@ -49,12 +54,17 @@ export const MemberBalanceSchema = z.object({
   membershipId: z.uuid().optional(),
   userId: z.uuid().optional(),
   alias: z.string().optional(),
+  role: z.string().optional(),
   balance: z.number().optional(),
 });
 
 export const PartyBalanceResponseSchema = z.object({
   partyId: z.uuid().optional(),
   balances: z.array(MemberBalanceSchema).optional(),
+});
+
+export const UpdateAliasRequestSchema = z.object({
+  alias: z.string().min(2).max(50),
 });
 
 // --- Expenses ---
@@ -96,6 +106,7 @@ export const CurrencyResponseSchema = z.object({
 
 // --- Export Types ---
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
+export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
 export type UserResponse = z.infer<typeof UserResponseSchema>;
 export type UserUpdateRequest = z.infer<typeof UserUpdateRequestSchema>;
@@ -103,6 +114,7 @@ export type PartyRequest = z.infer<typeof PartyRequestSchema>;
 export type PartyResponse = z.infer<typeof PartyResponseSchema>;
 export type JoinPartyRequest = z.infer<typeof JoinPartyRequestSchema>;
 export type PartyBalanceResponse = z.infer<typeof PartyBalanceResponseSchema>;
+export type UpdateAliasRequest = z.infer<typeof UpdateAliasRequestSchema>;
 export type ExpenseRequest = z.infer<typeof ExpenseRequestSchema>;
 export type ExpenseResponse = z.infer<typeof ExpenseResponseSchema>;
 export type CurrencyResponse = z.infer<typeof CurrencyResponseSchema>;

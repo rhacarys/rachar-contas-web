@@ -4,10 +4,13 @@ import {
   type ExpenseResponse,
   type PartyRequest,
   type PartyResponse,
+  type UpdateAliasRequest,
 } from "@/models/Schemas";
 import { http, HttpResponse } from "msw";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+
+const MOCKED_CURRENT_USER_ID = "uuid-do-nathaniel";
 
 const mockCurrencies: CurrencyResponse[] = [
   { id: "11111111-2222-3333-4444-555555555555", code: "BRL", name: "Real Brasileiro" },
@@ -41,10 +44,10 @@ let mockExpenses: ExpenseResponse[] = [
     description: "Picanha e Carvão",
     amount: 150.0,
     date: new Date().toISOString(),
-    payerId: "uuid-do-nathaniel",
+    payerId: MOCKED_CURRENT_USER_ID,
     type: "PURCHASE",
     splits: [
-      { debtorId: "uuid-do-nathaniel", amount: 50 },
+      { debtorId: MOCKED_CURRENT_USER_ID, amount: 50 },
       { debtorId: "uuid-do-robson", amount: 100 },
     ],
   },
@@ -84,15 +87,54 @@ export const handlers = [
       name: body.name,
       description: body.description || "",
       currencyCode: body.currencyCode.toUpperCase(),
-      userBalance: 0.0, // Todo grupo novo inicia com o balanço do usuário zerado
+      userBalance: 0.0,
     };
 
     mockParties.push(newParty);
-
     return HttpResponse.json(newParty, { status: 201 });
   }),
 
-  // GET: Calcular Saldo Detalhado do Grupo
+  // PUT: Atualizar Informações do Grupo (Usado pelo Admin Drawer)
+  http.put(`${BASE_URL}/parties/:partyId`, async ({ params, request }) => {
+    const { partyId } = params;
+    const body = (await request.json()) as PartyRequest;
+    
+    const index = mockParties.findIndex((p) => p.id === partyId);
+    if (index !== -1) {
+      mockParties[index] = {
+        ...mockParties[index],
+        name: body.name,
+        description: body.description || "",
+        currencyCode: body.currencyCode,
+      };
+      return HttpResponse.json(mockParties[index]);
+    }
+    
+    return new HttpResponse(null, { status: 404 });
+  }),
+
+  // POST: Entrar em um Grupo Existente (Link de Convite)
+  http.post(`${BASE_URL}/parties/join`, async ({ request }) => {
+    const body = (await request.json()) as { code: string; alias: string };
+    
+    // Procura se o grupo existe pelo código enviado no link
+    const existingParty = mockParties.find(p => p.code === body.code.toUpperCase());
+    
+    if (existingParty) {
+      return HttpResponse.json(existingParty);
+    }
+    
+    return new HttpResponse(null, { status: 404 });
+  }),
+
+  // PUT: Editar meu próprio apelido (alias) no grupo
+  http.put(`${BASE_URL}/parties/:partyId/members/me/alias`, async ({ request }) => {
+    const body = (await request.json()) as UpdateAliasRequest;
+    console.log("Novo apelido mockado salvo com sucesso:", body.alias);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // GET: Calcular Saldo Detalhado do Grupo (Atualizado com userId e role)
   http.get(`${BASE_URL}/parties/:partyId/balances`, ({ params }) => {
     const { partyId } = params;
     const currentParty = mockParties.find((p) => p.id === partyId);
@@ -101,15 +143,17 @@ export const handlers = [
       partyId: partyId,
       balances: [
         {
-          membershipId: crypto.randomUUID(),
-          userId: "uuid-do-nathaniel",
+          membershipId: "member-nathaniel-id",
+          userId: MOCKED_CURRENT_USER_ID, // Vincula ao seu ID logado para validação
           alias: "Nathaniel",
+          role: "ADMIN", // Define você como administrador do grupo para abrir o Drawer
           balance: currentParty ? currentParty.userBalance : 0,
         },
         {
-          membershipId: crypto.randomUUID(),
+          membershipId: "member-robson-id",
           userId: "uuid-do-robson",
           alias: "Robson",
+          role: "MEMBER",
           balance: currentParty?.id === "123e4567-e89b-12d3-a456-426614174000" ? 45.5 : -1200.0,
         },
       ],

@@ -1,19 +1,42 @@
 import { usePartyBalances, useUserParties } from "@/hooks/useParties";
 import { type ExpenseResponse } from "@/models/Schemas";
-import { Alert, Button, Card, Container, Divider, Group, Loader, Stack, Text, Title } from "@mantine/core";
+import { useAuthStore } from "@/store/useAuthStore";
+import {
+  ActionIcon,
+  Alert,
+  Button,
+  Container,
+  Divider,
+  Group,
+  Loader,
+  Stack,
+  Text,
+  Title,
+  Tooltip,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
+import { IconSettings, IconShare } from "@tabler/icons-react";
 import { useState } from "react";
+import { EditPartyDrawer } from "./EditPartyDrawer";
 import { ExpenseDrawer } from "./ExpenseDrawer";
+import { MemberBalanceRow } from "./MemberBalanceRow";
 import { PartyExpensesList } from "./PartyExpensesList";
 
 export function PartyDetailsView({ partyId }: { partyId: string }) {
   const { data: parties } = useUserParties();
   const { data: balanceData, isLoading, error } = usePartyBalances(partyId);
 
+  const currentUser = useAuthStore((state) => state.user) ?? {};
+
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
+  const [adminDrawerOpened, { open: openAdminDrawer, close: closeAdminDrawer }] = useDisclosure(false);
   const [expenseToEdit, setExpenseToEdit] = useState<ExpenseResponse | null>(null);
 
   const currentParty = parties?.find((p) => p.id === partyId);
+
+  const currentUserMember = balanceData?.balances?.find((m) => m.userId === currentUser.id);
+  const isAdmin = currentUserMember?.role === "ADMIN";
 
   const handleOpenNew = () => {
     setExpenseToEdit(null);
@@ -25,33 +48,73 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
     openDrawer();
   };
 
+  const handleShareGroupLink = async () => {
+    if (!currentParty?.code) return;
+
+    const inviteLink = `${window.location.origin}?joinCode=${currentParty.code}`;
+
+    const shareData = {
+      title: `Entre no grupo ${currentParty.name}`,
+      text: `Participe do meu grupo de despesas compartilhadas e vamos Rachar as Contas!`,
+      url: inviteLink,
+    };
+
+    if (navigator.share && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log("Compartilhamento cancelado");
+      }
+    } else {
+      await navigator.clipboard.writeText(inviteLink);
+      notifications.show({
+        title: "Link de convite copiado!",
+        message: "O link com o código de acesso foi copiado para a sua área de transferência.",
+        color: "green",
+      });
+    }
+  };
+
   if (isLoading) return <Loader mt="xl" mx="auto" display="block" />;
   if (error) return <Alert color="red">Erro ao carregar dados do grupo.</Alert>;
 
   return (
     <Container py="xl" size="sm">
-      <Stack gap={4} mb="xl">
-        <Title order={2}>{currentParty?.name || "Grupo"}</Title>
-        <Text size="sm" c="dimmed">
-          {currentParty?.description}
-        </Text>
+      <Stack gap="xs" mb="xl">
+        <Group justify="end" gap="xs" mt="-lg">
+          <Tooltip label="Compartilhar Link de Convite" position="top" withArrow>
+            <ActionIcon variant="light" color="blue" radius="md" size="md" onClick={handleShareGroupLink}>
+              <IconShare size={16} />
+            </ActionIcon>
+          </Tooltip>
+
+          {/* O botão de engrenagem só é exibido se for ADMIN */}
+          {isAdmin && (
+            <ActionIcon variant="subtle" color="gray" size="md" onClick={openAdminDrawer}>
+              <IconSettings size={22} />
+            </ActionIcon>
+          )}
+        </Group>
+
+        <Stack gap={4}>
+          <Title order={2}>{currentParty?.name || "Grupo"}</Title>
+          <Text size="sm" c="dimmed">
+            {currentParty?.description || "Sem descrição informada."}
+          </Text>
+        </Stack>
       </Stack>
 
-      {/* Balances */}
+      {/* Balances atualizado usando o novo Row com suporte a edição */}
       <Stack gap="sm" mb="xl">
-        {balanceData?.balances?.map((member) => {
-          const isDebtor = (member.balance ?? 0) < 0;
-          return (
-            <Card key={member.membershipId} withBorder p="sm" radius="md">
-              <Group justify="space-between">
-                <Text fw={500}>{member.alias}</Text>
-                <Text fw={700} c={isDebtor ? "red" : "green"}>
-                  {`${currentParty?.currencyCode} ${(member.balance ?? 0).toFixed(2)}`}
-                </Text>
-              </Group>
-            </Card>
-          );
-        })}
+        {balanceData?.balances?.map((member) => (
+          <MemberBalanceRow
+            key={member.membershipId}
+            member={member}
+            partyId={partyId}
+            currencyCode={currentParty?.currencyCode || "BRL"}
+            isCurrentUser={member.userId === currentUser.id}
+          />
+        ))}
       </Stack>
 
       <Divider my="xl" />
@@ -65,6 +128,11 @@ export function PartyDetailsView({ partyId }: { partyId: string }) {
       </Group>
       <PartyExpensesList partyId={partyId} onEdit={handleOpenEdit} />
       <ExpenseDrawer partyId={partyId} opened={drawerOpened} onClose={closeDrawer} expenseToEdit={expenseToEdit} />
+
+      {/* Só monta o Drawer se for Admin */}
+      {currentParty && isAdmin && (
+        <EditPartyDrawer party={currentParty} opened={adminDrawerOpened} onClose={closeAdminDrawer} />
+      )}
     </Container>
   );
 }

@@ -10,7 +10,7 @@ import { useAuthStore } from "../store/useAuthStore";
 
 export function Login() {
   const navigate = useNavigate();
-  const setToken = useAuthStore((state) => state.setToken);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginRequest>({
@@ -21,8 +21,8 @@ export function Login() {
   const handleSubmit = async (values: LoginRequest) => {
     try {
       setLoading(true);
-      const { token } = await authService.login(values);
-      setToken(token);
+      const { token, user } = await authService.login(values);
+      setAuth(token, user);
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
