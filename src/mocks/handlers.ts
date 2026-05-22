@@ -1,4 +1,10 @@
-import { type CurrencyResponse, type PartyRequest, type PartyResponse } from "@/models/Schemas";
+import {
+  type CurrencyResponse,
+  type ExpenseRequest,
+  type ExpenseResponse,
+  type PartyRequest,
+  type PartyResponse,
+} from "@/models/Schemas";
 import { http, HttpResponse } from "msw";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
@@ -26,6 +32,21 @@ const mockParties: PartyResponse[] = [
     description: "Custos da Eurotrip/Asia",
     currencyCode: "THB",
     userBalance: 1200.0,
+  },
+];
+
+let mockExpenses: ExpenseResponse[] = [
+  {
+    id: "exp-123",
+    description: "Picanha e Carvão",
+    amount: 150.0,
+    date: new Date().toISOString(),
+    payerId: "uuid-do-nathaniel",
+    type: "PURCHASE",
+    splits: [
+      { debtorId: "uuid-do-nathaniel", amount: 50 },
+      { debtorId: "uuid-do-robson", amount: 100 },
+    ],
   },
 ];
 
@@ -81,15 +102,41 @@ export const handlers = [
       balances: [
         {
           membershipId: crypto.randomUUID(),
-          alias: "Nathaniel (Você)",
+          userId: "uuid-do-nathaniel",
+          alias: "Nathaniel",
           balance: currentParty ? currentParty.userBalance : 0,
         },
         {
           membershipId: crypto.randomUUID(),
+          userId: "uuid-do-robson",
           alias: "Robson",
           balance: currentParty?.id === "123e4567-e89b-12d3-a456-426614174000" ? 45.5 : -1200.0,
         },
       ],
     });
+  }),
+
+  // --- Expenses Mocks ---
+
+  // GET: Listar Despesas
+  http.get(`${BASE_URL}/parties/:partyId/expenses`, () => {
+    return HttpResponse.json(mockExpenses);
+  }),
+
+  // POST: Criar Despesa
+  http.post(`${BASE_URL}/parties/:partyId/expenses`, async ({ request }) => {
+    const body = (await request.json()) as ExpenseRequest;
+    const newExpense: ExpenseResponse = {
+      id: crypto.randomUUID(),
+      ...body,
+    };
+    mockExpenses.unshift(newExpense);
+    return HttpResponse.json(newExpense, { status: 201 });
+  }),
+
+  // DELETE: Apagar Despesa
+  http.delete(`${BASE_URL}/parties/:partyId/expenses/:expenseId`, ({ params }) => {
+    mockExpenses = mockExpenses.filter((e) => e.id !== params.expenseId);
+    return new HttpResponse(null, { status: 204 });
   }),
 ];

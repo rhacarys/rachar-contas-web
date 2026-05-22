@@ -47,6 +47,7 @@ export const JoinPartyRequestSchema = z.object({
 
 export const MemberBalanceSchema = z.object({
   membershipId: z.uuid().optional(),
+  userId: z.uuid().optional(),
   alias: z.string().optional(),
   balance: z.number().optional(),
 });
