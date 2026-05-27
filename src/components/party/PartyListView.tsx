@@ -61,9 +61,9 @@ export function PartyListView({ onSelectParty }: PartyListViewProps) {
                   </Text>
                 </div>
 
-                <Group justify="space-between" mt="auto" pt="sm" style={{ borderTop: "1px solid #e9ecef" }}>
-                  <Text size="xs" bg="gray.1" px="xs" py={4} style={{ borderRadius: 4 }}>
-                    Código: {party.code}
+                <Group justify="space-between" mt="auto" pt="sm" style={{ borderTop: "1px solid var(--mantine-color-dark-4)" }}>
+                  <Text size="xs" bg="dark.4" px="xs" py={4} style={{ borderRadius: 4 }}>
+                    {party.code}
                   </Text>
                   <Text size="xs" c="blue" fw={500}>
                     Acessar grupo →

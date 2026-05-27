@@ -1,4 +1,4 @@
-import { Anchor, Button, PasswordInput, TextInput } from "@mantine/core";
+import { Anchor, Button, Container, PasswordInput, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { useState } from "react";
@@ -29,17 +29,8 @@ export function Register() {
     }
   };
 
-  const subtitle = (
-    <>
-      Já possui uma conta?{" "}
-      <Anchor component={Link} to="/login" size="sm">
-        Faça login
-      </Anchor>
-    </>
-  );
-
   return (
-    <AuthLayout title="Criar Conta" subtitle={subtitle}>
+    <AuthLayout>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <TextInput label="Nome" placeholder="Seu nome" required {...form.getInputProps("name")} />
         <TextInput label="Login" placeholder="seu@email.com" required mt="md" {...form.getInputProps("login")} />
@@ -54,6 +45,12 @@ export function Register() {
           Registrar
         </Button>
       </form>
+      <Container ta="center" mt="md" fz="sm">
+        Já possui uma conta?{" "}
+        <Anchor component={Link} to="/login" size="sm">
+          Faça login
+        </Anchor>
+      </Container>
     </AuthLayout>
   );
 }

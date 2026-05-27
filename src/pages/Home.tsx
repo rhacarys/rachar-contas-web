@@ -44,7 +44,7 @@ export function Home() {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Main bg="gray.0" style={{ minHeight: "100vh" }}>
+      <AppShell.Main bg="dark.6" style={{ minHeight: "100vh" }}>
         <HomeView />
       </AppShell.Main>
     </AppShell>
