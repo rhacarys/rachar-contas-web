@@ -1,4 +1,4 @@
-import { usePartyBalances, useUserParties } from "@/hooks/useParties";
+import { usePartyBalances, useSyncParty, useUserParties } from "@/hooks/useParties";
 import { type ExpenseResponse } from "@/models/Schemas";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
@@ -26,6 +26,7 @@ import { PartyExpensesList } from "./PartyExpensesList";
 export function PartyDetailsView({ partyId }: { partyId: string }) {
   const { data: parties } = useUserParties();
   const { data: balanceData, isLoading, error } = usePartyBalances(partyId);
+  useSyncParty(partyId);
 
   const user = useAuthStore((state) => state.user);
   const currentUserId = user?.id || "uuid-do-nathaniel";

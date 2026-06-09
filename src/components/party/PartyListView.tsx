@@ -31,9 +31,9 @@ export function PartyListView({ onSelectParty }: PartyListViewProps) {
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           {parties?.map((party: PartyResponse) => {
-            const userBalance = party.userBalance ?? 0;
-            const isDebtor = userBalance < 0;
-            const hasNoBalance = userBalance === 0;
+            const myBalance = party.myBalance ?? 0;
+            const isDebtor = myBalance < 0;
+            const hasNoBalance = myBalance === 0;
 
             return (
               <Card
@@ -53,7 +53,7 @@ export function PartyListView({ onSelectParty }: PartyListViewProps) {
                     <Badge variant="light" color={hasNoBalance ? "gray" : isDebtor ? "red" : "green"} size="lg">
                       {hasNoBalance
                         ? "Quitado"
-                        : `${isDebtor ? "-" : "+"} ${party.currencyCode} ${Math.abs(userBalance).toFixed(2)}`}
+                        : `${isDebtor ? "-" : "+"} ${party.currencyCode} ${Math.abs(myBalance).toFixed(2)}`}
                     </Badge>
                   </Group>
                   <Text size="sm" c="dimmed" mb="md">
@@ -61,7 +61,12 @@ export function PartyListView({ onSelectParty }: PartyListViewProps) {
                   </Text>
                 </div>
 
-                <Group justify="space-between" mt="auto" pt="sm" style={{ borderTop: "1px solid var(--mantine-color-dark-4)" }}>
+                <Group
+                  justify="space-between"
+                  mt="auto"
+                  pt="sm"
+                  style={{ borderTop: "1px solid var(--mantine-color-dark-4)" }}
+                >
                   <Text size="xs" bg="dark.4" px="xs" py={4} style={{ borderRadius: 4 }}>
                     {party.code}
                   </Text>

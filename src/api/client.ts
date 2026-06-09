@@ -20,6 +20,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (!error.response && error.message === "Network Error") {
+      console.debug("Dispositivo offline. O TanStack Query gerenciará a fila.");
+      return Promise.reject(error);
+    }
+
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       const hasToken = !!useAuthStore.getState().token;
       if (hasToken) {
@@ -32,7 +37,15 @@ api.interceptors.response.use(
         });
         window.location.href = "/login";
       }
+    } else if (error.response && error.response.status >= 500) {
+      notifications.show({
+        title: "Erro no servidor",
+        message: "Tivemos um problema inesperado. Tente novamente mais tarde.",
+        color: "red",
+        autoClose: 4000,
+      });
     }
+
     return Promise.reject(error);
   },
 );

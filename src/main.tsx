@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import { SyncManager } from "@/components/providers/SyncManager";
 import { theme } from "./theme";
 
 const queryClient = new QueryClient({
@@ -34,6 +35,7 @@ enableMocking().then(() => {
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={theme} defaultColorScheme="dark">
           <ModalsProvider>
+            <SyncManager />
             <App />
           </ModalsProvider>
         </MantineProvider>

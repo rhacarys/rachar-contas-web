@@ -29,7 +29,7 @@ export const LoginResponseSchema = z.object({
   user: UserResponseSchema,
 });
 
-// --- Parties ---
+// --- Parties & Memberships ---
 export const PartyRequestSchema = z.object({
   name: z.string().min(3).max(100),
   description: z.string().optional(),
@@ -42,12 +42,21 @@ export const PartyResponseSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   currencyCode: z.string().optional(),
-  userBalance: z.number().optional(),
+  myBalance: z.number().optional(),
+  deletedAt: z.string().optional(),
 });
 
 export const JoinPartyRequestSchema = z.object({
   code: z.string(),
   alias: z.string().min(2).max(50),
+});
+
+export const MembershipResponseSchema = z.object({
+  id: z.uuid().optional(),
+  userId: z.uuid().optional(),
+  alias: z.string().optional(),
+  role: z.string().optional(),
+  deletedAt: z.string().optional(),
 });
 
 export const MemberBalanceSchema = z.object({
@@ -76,7 +85,7 @@ export const SplitRequestSchema = z.object({
 export const ExpenseRequestSchema = z.object({
   description: z.string(),
   amount: z.number(),
-  date: z.string(), // format: date-time
+  date: z.string(),
   payerId: z.uuid(),
   type: z.enum(["PURCHASE", "TRANSFER"]).optional(),
   splits: z.array(SplitRequestSchema),
@@ -85,6 +94,7 @@ export const ExpenseRequestSchema = z.object({
 export const SplitResponseSchema = z.object({
   debtorId: z.uuid().optional(),
   amount: z.number().optional(),
+  deletedAt: z.string().optional(),
 });
 
 export const ExpenseResponseSchema = z.object({
@@ -94,7 +104,31 @@ export const ExpenseResponseSchema = z.object({
   date: z.string().optional(),
   payerId: z.uuid().optional(),
   type: z.enum(["PURCHASE", "TRANSFER"]).optional(),
+  deletedAt: z.string().optional(),
   splits: z.array(SplitResponseSchema).optional(),
+});
+
+// --- Sync Offline-First ---
+export const ExpenseSyncPayloadSchema = z.object({
+  id: z.uuid().optional(),
+  payerId: z.uuid().optional(),
+  description: z.string().optional(),
+  amount: z.number().optional(),
+  date: z.string().optional(),
+  type: z.enum(["PURCHASE", "TRANSFER"]).optional(),
+  splits: z.array(SplitRequestSchema).optional(),
+});
+
+export const SyncPushRequestSchema = z.object({
+  expensesToCreate: z.array(ExpenseSyncPayloadSchema).optional(),
+  expensesToDelete: z.array(z.uuid()).optional(),
+});
+
+export const SyncResponseSchema = z.object({
+  party: PartyResponseSchema.optional(),
+  memberships: z.array(MembershipResponseSchema).optional(),
+  expenses: z.array(ExpenseResponseSchema).optional(),
+  serverTimestamp: z.string().optional(),
 });
 
 // --- Currencies ---
@@ -113,8 +147,12 @@ export type UserUpdateRequest = z.infer<typeof UserUpdateRequestSchema>;
 export type PartyRequest = z.infer<typeof PartyRequestSchema>;
 export type PartyResponse = z.infer<typeof PartyResponseSchema>;
 export type JoinPartyRequest = z.infer<typeof JoinPartyRequestSchema>;
+export type MembershipResponse = z.infer<typeof MembershipResponseSchema>;
 export type PartyBalanceResponse = z.infer<typeof PartyBalanceResponseSchema>;
 export type UpdateAliasRequest = z.infer<typeof UpdateAliasRequestSchema>;
 export type ExpenseRequest = z.infer<typeof ExpenseRequestSchema>;
 export type ExpenseResponse = z.infer<typeof ExpenseResponseSchema>;
+export type ExpenseSyncPayload = z.infer<typeof ExpenseSyncPayloadSchema>;
+export type SyncPushRequest = z.infer<typeof SyncPushRequestSchema>;
+export type SyncResponse = z.infer<typeof SyncResponseSchema>;
 export type CurrencyResponse = z.infer<typeof CurrencyResponseSchema>;
