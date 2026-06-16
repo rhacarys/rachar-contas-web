@@ -26,7 +26,7 @@ const mockParties: PartyResponse[] = [
     name: "Churrasco do Fim de Semana",
     description: "Grupo para dividir os custos da carne e bebidas",
     currencyCode: "BRL",
-    userBalance: -45.5,
+    myBalance: -45.5,
   },
   {
     id: "987f6543-e21b-73d1-b654-987654321000",
@@ -34,7 +34,7 @@ const mockParties: PartyResponse[] = [
     name: "Viagem para Bangkok",
     description: "Custos da Eurotrip/Asia",
     currencyCode: "THB",
-    userBalance: 1200.0,
+    myBalance: 1200.0,
   },
 ];
 
@@ -87,7 +87,7 @@ export const handlers = [
       name: body.name,
       description: body.description || "",
       currencyCode: body.currencyCode.toUpperCase(),
-      userBalance: 0.0,
+      myBalance: 0.0,
     };
 
     mockParties.push(newParty);
@@ -98,7 +98,7 @@ export const handlers = [
   http.put(`${BASE_URL}/parties/:partyId`, async ({ params, request }) => {
     const { partyId } = params;
     const body = (await request.json()) as PartyRequest;
-    
+
     const index = mockParties.findIndex((p) => p.id === partyId);
     if (index !== -1) {
       mockParties[index] = {
@@ -109,21 +109,21 @@ export const handlers = [
       };
       return HttpResponse.json(mockParties[index]);
     }
-    
+
     return new HttpResponse(null, { status: 404 });
   }),
 
   // POST: Entrar em um Grupo Existente (Link de Convite)
   http.post(`${BASE_URL}/parties/join`, async ({ request }) => {
     const body = (await request.json()) as { code: string; alias: string };
-    
+
     // Procura se o grupo existe pelo código enviado no link
-    const existingParty = mockParties.find(p => p.code === body.code.toUpperCase());
-    
+    const existingParty = mockParties.find((p) => p.code === body.code.toUpperCase());
+
     if (existingParty) {
       return HttpResponse.json(existingParty);
     }
-    
+
     return new HttpResponse(null, { status: 404 });
   }),
 
@@ -147,7 +147,7 @@ export const handlers = [
           userId: MOCKED_CURRENT_USER_ID, // Vincula ao seu ID logado para validação
           alias: "Nathaniel",
           role: "ADMIN", // Define você como administrador do grupo para abrir o Drawer
-          balance: currentParty ? currentParty.userBalance : 0,
+          balance: currentParty ? currentParty.myBalance : 0,
         },
         {
           membershipId: "member-robson-id",
